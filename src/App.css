@@ -1,0 +1,45 @@
+/* Layout & Structural utilities */
+
+.camera-grid {
+  height: calc(100vh - 120px);
+  padding-bottom: 2rem;
+}
+
+.zoom-container {
+  touch-action: none;
+}
+
+/* AI Detection overlay boxes */
+.detection-box {
+  position: absolute;
+  border: 2px solid #ef4444; /* red-500 */
+  background: rgba(239, 68, 68, 0.1);
+  pointer-events: none;
+  z-index: 20;
+  transition: all 0.1s linear;
+}
+
+.box-label {
+  position: absolute;
+  top: -24px;
+  left: -2px;
+  background: #ef4444;
+  color: white;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+  border-radius: 4px 4px 4px 0;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+  font-family: monospace;
+}
+
+/* Custom Animation overrides for clean theme */
+@keyframes spin-custom {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.animate-spin-custom {
+  animation: spin-custom 1s linear infinite;
+}
