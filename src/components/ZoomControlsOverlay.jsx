@@ -3,9 +3,9 @@ import { Button } from './ui/button';
 
 export function ZoomControlsOverlay({ scale, onChange, onReset }) {
   return (
-    <div 
-      className="absolute bottom-4 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1 bg-zinc-900/90 border border-zinc-700 px-1 py-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-xl" 
-      onMouseDown={(e) => e.stopPropagation()} 
+    <div
+      className="absolute top-4 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1 bg-zinc-900/90 border border-zinc-700 px-1 py-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-xl"
+      onMouseDown={(e) => e.stopPropagation()}
       onTouchStart={(e) => e.stopPropagation()}
     >
       <Button variant="ghost" size="icon" className="h-7 w-7 text-zinc-300 hover:text-white rounded-full" onClick={() => onChange(Math.max(1, scale - 0.5))}>
