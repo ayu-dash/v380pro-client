@@ -606,7 +606,7 @@ export default function App() {
     discoveredDevices, setDiscoveredDevices,
     startPan, doPan, endPan, handleZoomChange,
     handleManualSnapshot, toggleManualRecording, openSettings,
-    handleAddCamera, handleScan, handleSaveSettings,
+    handleAddCamera, handleScan, handleSaveSettings, handleDeleteCamera,
     loadSnapshots, handleDeleteSnapshot, openSnapshotModal, loadPlaybackFiles, handleDeletePlayback, handlePlayRecording, seekToEvent, handlePlaybackTimeUpdate,
     startHlsStream, destroyHlsStreams
   };
