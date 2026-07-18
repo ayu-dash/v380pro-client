@@ -501,35 +501,64 @@ export default function App() {
     hlsInstancesRef.current = {};
   }, []);
 
-  const startHlsStream = useCallback((cam, videoElement, retryCount = 0) => {
-
+  const startHlsStream = useCallback((cam, videoElement) => {
     if (!videoElement) return;
-    const hlsUrl = `http://${window.location.hostname}:8888/${cam.id}/index.m3u8`;
     if (hlsInstancesRef.current[cam.id]) {
       hlsInstancesRef.current[cam.id].destroy();
       delete hlsInstancesRef.current[cam.id];
     }
-    if (Hls.isSupported()) {
-      const hls = new Hls({ enableWorker: true, lowLatencyMode: true, liveSyncDuration: 2 });
-      hlsInstancesRef.current[cam.id] = hls;
-      hls.loadSource(hlsUrl);
-      hls.attachMedia(videoElement);
-      hls.on(Hls.Events.MANIFEST_PARSED, () => videoElement.play().catch(() => { }));
+
+    const hlsUrl = `http://${window.location.hostname}:8888/${cam.id}/index.m3u8`;
+    let retryCount = 0;
+    const MAX_RETRIES = 15;
+
+    const connectHls = () => {
+      if (hlsInstancesRef.current[cam.id]) {
+        hlsInstancesRef.current[cam.id].destroy();
+        delete hlsInstancesRef.current[cam.id];
+      }
+
+      const hls = new Hls({
+        enableWorker: true,
+        lowLatencyMode: true,
+        liveSyncDurationCount: 2,
+        liveMaxLatencyDurationCount: 4,
+        maxLiveSyncPlaybackRate: 1.5,
+        manifestLoadingTimeOut: 3000,
+        manifestLoadingMaxRetry: 0,
+        levelLoadingTimeOut: 3000,
+        levelLoadingMaxRetry: 0,
+        fragLoadingTimeOut: 3000,
+        fragLoadingMaxRetry: 0,
+        startFragPrefetch: false,
+      });
+
       hls.on(Hls.Events.ERROR, (event, data) => {
         if (data.fatal) {
           hls.destroy();
           delete hlsInstancesRef.current[cam.id];
-          if (retryCount < 10) {
-            setTimeout(() => {
-              const currentVideo = document.getElementById(`video-${cam.id}`);
-              if (currentVideo) startHlsStream(cam, currentVideo, retryCount + 1);
-            }, 5000);
+          if (retryCount < MAX_RETRIES) {
+            retryCount++;
+            setTimeout(connectHls, 2000);
           }
         }
       });
+
+      hls.loadSource(hlsUrl);
+      hls.attachMedia(videoElement);
+      hls.on(Hls.Events.MANIFEST_PARSED, () => {
+        retryCount = 0;
+        videoElement.play().catch(() => {});
+      });
+
+      hlsInstancesRef.current[cam.id] = hls;
+    };
+
+    if (Hls.isSupported()) {
+      connectHls();
     } else if (videoElement.canPlayType('application/vnd.apple.mpegurl')) {
       videoElement.src = hlsUrl;
-      videoElement.play().catch(() => { });
+      videoElement.play().catch(() => {});
     }
   }, []);
 

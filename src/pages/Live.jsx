@@ -66,12 +66,13 @@ export default function Live() {
                   >
                     <video
                       id={`video-${cam.id}`}
-                      crossOrigin="anonymous"
                       muted={isMuted}
                       autoPlay
                       playsInline
+                      crossOrigin="anonymous"
                       onPlaying={() => setLiveLoadingStates(prev => ({ ...prev, [cam.id]: false }))}
                       onWaiting={() => setLiveLoadingStates(prev => ({ ...prev, [cam.id]: true }))}
+                      onLoadedData={() => setLiveLoadingStates(prev => ({ ...prev, [cam.id]: false }))}
                       className="w-full h-full object-fill pointer-events-none"
                     />
 
