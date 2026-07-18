@@ -309,10 +309,7 @@ export default function App() {
       const response = await fetch(`/api/recordings/${playbackCamId}`);
       if (!response.ok) throw new Error("Failed to load");
       const data = await response.json();
-      const filtered = playbackDate ? data.filter(f => {
-        const parts = f.name.split('_')[0].split('-');
-        return parts.length === 3 && `${parts[2]}-${parts[1]}-${parts[0]}` === playbackDate;
-      }) : data;
+      const filtered = playbackDate ? data.filter(f => f.name.startsWith(playbackDate)) : data;
       setRecordings(filtered);
       if (filtered.length > 0) handlePlayRecording(filtered[0]);
     } catch (err) {
@@ -355,7 +352,7 @@ export default function App() {
       const logs = await res.json();
       const parts = recFile.name.replace('.mp4', '').split('_');
       const dateParts = parts[0].split('-');
-      const startStr = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}T${parts[1].replace(/-/g, ':')}`;
+      const startStr = `${dateParts[0]}-${dateParts[1]}-${dateParts[2]}T${parts[1].replace(/-/g, ':')}`;
       const segmentStart = new Date(startStr).getTime();
       const parsedLogs = logs.map(l => ({
         ...l,
