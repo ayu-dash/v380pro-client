@@ -43,6 +43,7 @@ export default function App() {
   const [liveDetections, setLiveDetections] = useState({});
   const [liveFullscreen, setLiveFullscreen] = useState(null);
   const [liveLoadingStates, setLiveLoadingStates] = useState({});
+  const [liveErrorStates, setLiveErrorStates] = useState({});
 
   // Playback Tab State
   const [playbackCamId, setPlaybackCamId] = useState('');
@@ -510,6 +511,7 @@ export default function App() {
     const MAX_RETRIES = 15;
 
     const connectHls = () => {
+      setLiveErrorStates(prev => ({ ...prev, [cam.id]: false }));
       if (hlsInstancesRef.current[cam.id]) {
         hlsInstancesRef.current[cam.id].destroy();
         delete hlsInstancesRef.current[cam.id];
@@ -537,6 +539,9 @@ export default function App() {
           if (retryCount < MAX_RETRIES) {
             retryCount++;
             setTimeout(connectHls, 2000);
+          } else {
+            setLiveErrorStates(prev => ({ ...prev, [cam.id]: true }));
+            setLiveLoadingStates(prev => ({ ...prev, [cam.id]: false }));
           }
         }
       });
@@ -545,6 +550,7 @@ export default function App() {
       hls.attachMedia(videoElement);
       hls.on(Hls.Events.MANIFEST_PARSED, () => {
         retryCount = 0;
+        setLiveErrorStates(prev => ({ ...prev, [cam.id]: false }));
         videoElement.play().catch(() => {});
       });
 
@@ -614,6 +620,7 @@ export default function App() {
     liveDetections, setLiveDetections,
     liveFullscreen, setLiveFullscreen,
     liveLoadingStates, setLiveLoadingStates,
+    liveErrorStates, setLiveErrorStates,
     playbackCamId, setPlaybackCamId,
     playbackDate, setPlaybackDate,
     recordings, setRecordings,

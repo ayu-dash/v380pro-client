@@ -12,6 +12,7 @@ export default function Live() {
     liveDetections,
     liveFullscreen, setLiveFullscreen,
     liveLoadingStates, setLiveLoadingStates,
+    liveErrorStates, setLiveErrorStates,
     activeManualRecordings,
     startPan, doPan, endPan, handleZoomChange,
     handleManualSnapshot, toggleManualRecording, openSettings,
@@ -76,7 +77,17 @@ export default function Live() {
                       className="w-full h-full object-fill pointer-events-none"
                     />
 
-                    {liveLoadingStates[cam.id] !== false && (
+                    {liveErrorStates[cam.id] === true ? (
+                      <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-zinc-950/90 z-10">
+                        <p className="text-sm text-zinc-400 text-center px-4">
+                          Stream tidak tersedia.<br />Pastikan kamera aktif &amp; ter-publish ke MediaMTX.
+                        </p>
+                        <Button variant="secondary" size="sm" onClick={() => startHlsStream(cam, document.getElementById(`video-${cam.id}`))}>
+                          <span className="material-symbols-outlined text-[16px] mr-1">refresh</span>
+                          Coba lagi
+                        </Button>
+                      </div>
+                    ) : liveLoadingStates[cam.id] !== false && (
                       <div className="absolute inset-0 flex items-center justify-center bg-zinc-950/80 z-10">
                         <div className="w-8 h-8 border-4 border-zinc-700 border-t-white rounded-full animate-spin" />
                       </div>
