@@ -39,18 +39,6 @@ export default function PTZControls({ camId }) {
     stopMove();
   }, [stopMove]);
 
-  const handleZoom = useCallback(async (direction) => {
-    const zoom = direction === 'in' ? 1 : -1;
-    try {
-      await fetch(`/api/ptz/${camId}/move`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ x: 0, y: 0, zoom: zoom * SPEED })
-      });
-      setTimeout(() => stopMove(), 300);
-    } catch (e) { /* silent */ }
-  }, [camId, stopMove]);
-
   if (!show) {
     return (
       <Button
@@ -126,7 +114,9 @@ export default function PTZControls({ camId }) {
             variant="ghost"
             size="icon"
             className="h-7 w-7 text-white hover:bg-zinc-700 hover:text-white"
-            onPointerDown={e => { e.preventDefault(); e.stopPropagation(); handleZoom('out'); }}
+            onPointerDown={e => handlePointerDown(e, 0, 0, -1)}
+            onPointerUp={handlePointerUp}
+            onPointerLeave={handlePointerUp}
           >
             <ZoomOut className="h-3.5 w-3.5" />
           </Button>
@@ -134,7 +124,9 @@ export default function PTZControls({ camId }) {
             variant="ghost"
             size="icon"
             className="h-7 w-7 text-white hover:bg-zinc-700 hover:text-white"
-            onPointerDown={e => { e.preventDefault(); e.stopPropagation(); handleZoom('in'); }}
+            onPointerDown={e => handlePointerDown(e, 0, 0, 1)}
+            onPointerUp={handlePointerUp}
+            onPointerLeave={handlePointerUp}
           >
             <ZoomIn className="h-3.5 w-3.5" />
           </Button>
