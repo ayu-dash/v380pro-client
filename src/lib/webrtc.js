@@ -1,4 +1,5 @@
 const peers = {};
+const streams = {};
 const retryTimers = {};
 const MAX_RETRIES = 20;
 const RETRY_DELAY_MS = 2000;
@@ -8,8 +9,17 @@ export function isWebRTCSupported() {
 }
 
 export function startWebRTCStream(camId, videoElement, { onLoading, onError } = {}) {
-  if (peers[camId]) stopWebRTCStream(camId);
   if (!videoElement) return;
+
+  if (peers[camId] && streams[camId]) {
+    videoElement.srcObject = streams[camId];
+    videoElement.play().catch(() => {});
+    if (onLoading) onLoading(false);
+    if (onError) onError(false);
+    return;
+  }
+
+  if (peers[camId]) stopWebRTCStream(camId);
 
   if (!retryTimers[camId]) retryTimers[camId] = { count: 0 };
 
@@ -32,6 +42,7 @@ export function startWebRTCStream(camId, videoElement, { onLoading, onError } = 
   pc.ontrack = (event) => {
     if (event.track.kind === 'video' || !videoElement.srcObject) {
       videoElement.srcObject = event.streams[0];
+      streams[camId] = event.streams[0];
       streamActive = true;
       retryTimers[camId].count = 0;
       videoElement.onplaying = () => { if (onLoading) onLoading(false); };
@@ -40,6 +51,7 @@ export function startWebRTCStream(camId, videoElement, { onLoading, onError } = 
 
   pc.oniceconnectionstatechange = () => {
     if (pc.iceConnectionState === 'failed' || pc.iceConnectionState === 'disconnected') {
+      delete streams[camId];
       if (streamActive) {
         scheduleRetry(camId, videoElement, { onLoading, onError });
       }
@@ -64,6 +76,7 @@ export function startWebRTCStream(camId, videoElement, { onLoading, onError } = 
       console.error(`WebRTC error for ${camId}:`, err);
       pc.close();
       delete peers[camId];
+      delete streams[camId];
       scheduleRetry(camId, videoElement, { onLoading, onError });
     });
 
@@ -91,6 +104,7 @@ export function stopWebRTCStream(camId) {
     peers[camId].close();
     delete peers[camId];
   }
+  delete streams[camId];
   if (retryTimers[camId]) {
     if (retryTimers[camId].timer) clearTimeout(retryTimers[camId].timer);
     delete retryTimers[camId];
@@ -102,6 +116,7 @@ export function destroyAllWebRTC() {
     peers[id].close();
     delete peers[id];
   });
+  Object.keys(streams).forEach((id) => delete streams[id]);
   Object.keys(retryTimers).forEach((id) => {
     if (retryTimers[id].timer) clearTimeout(retryTimers[id].timer);
     delete retryTimers[id];

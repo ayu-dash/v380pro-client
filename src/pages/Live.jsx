@@ -3,7 +3,7 @@ import { useOutletContext } from 'react-router-dom';
 import { Card } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { ZoomControlsOverlay } from '../components/ZoomControlsOverlay';
-import { startWebRTCStream, stopWebRTCStream, destroyAllWebRTC, isWebRTCSupported } from '../lib/webrtc';
+import { startWebRTCStream, isWebRTCSupported } from '../lib/webrtc';
 import PTZControls from '../components/PTZControls';
 
 export default function Live() {
@@ -40,7 +40,10 @@ export default function Live() {
       });
     }
     return () => {
-      destroyAllWebRTC();
+      cameras.forEach(cam => {
+        const video = document.getElementById(`video-${cam.id}`);
+        if (video) video.srcObject = null;
+      });
     };
   }, [cameras, startStream]);
 
