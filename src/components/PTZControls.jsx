@@ -1,7 +1,6 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { Button } from './ui/button';
-import { cn } from '../lib/utils';
-import { ChevronUp, ChevronDown, ChevronLeft, ChevronRight, Square, ZoomIn, ZoomOut, Gamepad2 } from 'lucide-react';
+import { ChevronUp, ChevronDown, ChevronLeft, ChevronRight, Square, Gamepad2 } from 'lucide-react';
 
 const SPEED = 0.5;
 
@@ -107,28 +106,6 @@ export default function PTZControls({ camId }) {
             onPointerLeave={handlePointerUp}
           >
             <ChevronDown className="h-4 w-4" />
-          </Button>
-        </div>
-        <div className={cn("flex items-center gap-1 border-t border-zinc-700 pt-1 mt-1 w-full justify-center")}>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7 text-white hover:bg-zinc-700 hover:text-white"
-            onPointerDown={e => handlePointerDown(e, 0, 0, -1)}
-            onPointerUp={handlePointerUp}
-            onPointerLeave={handlePointerUp}
-          >
-            <ZoomOut className="h-3.5 w-3.5" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7 text-white hover:bg-zinc-700 hover:text-white"
-            onPointerDown={e => handlePointerDown(e, 0, 0, 1)}
-            onPointerUp={handlePointerUp}
-            onPointerLeave={handlePointerUp}
-          >
-            <ZoomIn className="h-3.5 w-3.5" />
           </Button>
         </div>
         <Button
