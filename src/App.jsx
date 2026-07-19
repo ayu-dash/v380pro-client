@@ -72,6 +72,9 @@ export default function App() {
   // Settings Tab State
   const [newCamName, setNewCamName] = useState('');
   const [newCamUrl, setNewCamUrl] = useState('');
+  const [newOnvifPort, setNewOnvifPort] = useState('8899');
+  const [newOnvifUser, setNewOnvifUser] = useState('');
+  const [newOnvifPass, setNewOnvifPass] = useState('');
   const [scanning, setScanning] = useState(false);
   const [discoveredDevices, setDiscoveredDevices] = useState([]);
 
@@ -210,11 +213,17 @@ export default function App() {
       const res = await fetch('/api/cameras', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: newCamName, url: newCamUrl, status: 'online' })
+        body: JSON.stringify({
+          name: newCamName, url: newCamUrl, status: 'online',
+          onvifPort: newOnvifPort, onvifUsername: newOnvifUser, onvifPassword: newOnvifPass
+        })
       });
       if (res.ok) {
         setNewCamName('');
         setNewCamUrl('');
+        setNewOnvifPort('8899');
+        setNewOnvifUser('');
+        setNewOnvifPass('');
         fetchCameras();
       } else {
         const err = await res.json().catch(() => ({}));
@@ -639,6 +648,9 @@ export default function App() {
     activeManualRecordings, setActiveManualRecordings,
     newCamName, setNewCamName,
     newCamUrl, setNewCamUrl,
+    newOnvifPort, setNewOnvifPort,
+    newOnvifUser, setNewOnvifUser,
+    newOnvifPass, setNewOnvifPass,
     scanning, setScanning,
     discoveredDevices, setDiscoveredDevices,
     startPan, doPan, endPan, handleZoomChange,

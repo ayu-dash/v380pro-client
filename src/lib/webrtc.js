@@ -1,8 +1,14 @@
 const peers = {};
 
-export function startWebRTCStream(camId, videoElement) {
+export function isWebRTCSupported() {
+  return !!window.RTCPeerConnection;
+}
+
+export function startWebRTCStream(camId, videoElement, { onLoading, onError } = {}) {
   if (peers[camId]) stopWebRTCStream(camId);
   if (!videoElement) return;
+
+  if (onLoading) onLoading(true);
 
   const host = window.location.hostname;
   const url = `http://${host}:8889/${camId}/whep`;
@@ -18,6 +24,7 @@ export function startWebRTCStream(camId, videoElement) {
   pc.ontrack = (event) => {
     if (event.track.kind === 'video' || !videoElement.srcObject) {
       videoElement.srcObject = event.streams[0];
+      videoElement.onplaying = () => { if (onLoading) onLoading(false); };
     }
   };
 
@@ -26,7 +33,7 @@ export function startWebRTCStream(camId, videoElement) {
       setTimeout(() => {
         if (peers[camId]) {
           stopWebRTCStream(camId);
-          startWebRTCStream(camId, videoElement);
+          startWebRTCStream(camId, videoElement, { onLoading, onError });
         }
       }, 3000);
     }
@@ -48,6 +55,8 @@ export function startWebRTCStream(camId, videoElement) {
     .then((sdp) => pc.setRemoteDescription({ type: 'answer', sdp }))
     .catch((err) => {
       console.error(`WebRTC error for ${camId}:`, err);
+      if (onError) onError(err);
+      if (onLoading) onLoading(false);
       pc.close();
       delete peers[camId];
     });

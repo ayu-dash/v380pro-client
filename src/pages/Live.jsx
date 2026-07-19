@@ -1,8 +1,10 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useCallback } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { Card } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { ZoomControlsOverlay } from '../components/ZoomControlsOverlay';
+import { startWebRTCStream, stopWebRTCStream, destroyAllWebRTC, isWebRTCSupported } from '../lib/webrtc';
+import PTZControls from '../components/PTZControls';
 
 export default function Live() {
   const {
@@ -15,21 +17,32 @@ export default function Live() {
     liveErrorStates, setLiveErrorStates,
     activeManualRecordings,
     startPan, doPan, endPan, handleZoomChange,
-    handleManualSnapshot, toggleManualRecording, openSettings,
-    startHlsStream, destroyHlsStreams
+    handleManualSnapshot, toggleManualRecording, openSettings
   } = useOutletContext();
+
+  const startStream = useCallback((cam, video) => {
+    if (!video) return;
+    if (isWebRTCSupported()) {
+      startWebRTCStream(cam.id, video, {
+        onLoading: (loading) => setLiveLoadingStates(prev => ({ ...prev, [cam.id]: loading })),
+        onError: () => setLiveErrorStates(prev => ({ ...prev, [cam.id]: true }))
+      });
+    } else {
+      setLiveErrorStates(prev => ({ ...prev, [cam.id]: true }));
+    }
+  }, [setLiveLoadingStates, setLiveErrorStates]);
 
   useEffect(() => {
     if (cameras.length > 0) {
       cameras.forEach(cam => {
         const video = document.getElementById(`video-${cam.id}`);
-        if (video) startHlsStream(cam, video);
+        if (video) startStream(cam, video);
       });
     }
     return () => {
-      destroyHlsStreams();
+      destroyAllWebRTC();
     };
-  }, [cameras, startHlsStream, destroyHlsStreams]);
+  }, [cameras, startStream]);
 
   return (
     <div className="camera-grid h-full">
@@ -82,7 +95,7 @@ export default function Live() {
                         <p className="text-sm text-zinc-400 text-center px-4">
                           Stream tidak tersedia.<br />Pastikan kamera aktif &amp; ter-publish ke MediaMTX.
                         </p>
-                        <Button variant="secondary" size="sm" onClick={() => startHlsStream(cam, document.getElementById(`video-${cam.id}`))}>
+                        <Button variant="secondary" size="sm" onClick={() => startStream(cam, document.getElementById(`video-${cam.id}`))}>
                           <span className="material-symbols-outlined text-[16px] mr-1">refresh</span>
                           Coba lagi
                         </Button>
@@ -140,6 +153,10 @@ export default function Live() {
                     onChange={(val) => handleZoomChange(cam.id, val, 'live')}
                     onReset={() => handleZoomChange(cam.id, 1, 'live')}
                   />
+
+                  {cam.onvifUsername && (
+                    <PTZControls camId={cam.id} />
+                  )}
                 </div>
                 <div className="px-4 py-3 bg-zinc-900 border-t border-zinc-800 flex justify-between items-center">
                   <span className="text-sm font-medium">{cam.name}</span>

@@ -11,6 +11,9 @@ export default function Settings() {
     cameras,
     newCamName, setNewCamName,
     newCamUrl, setNewCamUrl,
+    newOnvifPort, setNewOnvifPort,
+    newOnvifUser, setNewOnvifUser,
+    newOnvifPass, setNewOnvifPass,
     scanning,
     discoveredDevices,
     handleAddCamera, handleScan, handleDeleteCamera
@@ -31,6 +34,23 @@ export default function Settings() {
             <div className="space-y-1">
               <Label>RTSP URL</Label>
               <Input value={newCamUrl} onChange={e => setNewCamUrl(e.target.value)} placeholder="rtsp://..." />
+            </div>
+            <div className="border-t border-zinc-800 pt-4 mt-2">
+              <p className="text-xs text-zinc-500 mb-3">ONVIF PTZ (optional)</p>
+              <div className="grid grid-cols-3 gap-2">
+                <div className="space-y-1">
+                  <Label>ONVIF Port</Label>
+                  <Input type="number" value={newOnvifPort} onChange={e => setNewOnvifPort(e.target.value)} placeholder="8899" />
+                </div>
+                <div className="space-y-1">
+                  <Label>ONVIF User</Label>
+                  <Input value={newOnvifUser} onChange={e => setNewOnvifUser(e.target.value)} placeholder="admin" />
+                </div>
+                <div className="space-y-1">
+                  <Label>ONVIF Pass</Label>
+                  <Input type="password" value={newOnvifPass} onChange={e => setNewOnvifPass(e.target.value)} placeholder="password" />
+                </div>
+              </div>
             </div>
             <Button onClick={handleAddCamera}>Add Camera</Button>
           </CardContent>
