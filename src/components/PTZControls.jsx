@@ -72,7 +72,7 @@ export default function PTZControls({ camId }) {
             variant="ghost"
             size="icon"
             className="h-8 w-8 text-white hover:bg-zinc-700 hover:text-white"
-            onPointerDown={e => handlePointerDown(e, 0, -1)}
+            onPointerDown={e => handlePointerDown(e, 0, 1)}
             onPointerUp={handlePointerUp}
             onPointerLeave={handlePointerUp}
           >
@@ -114,7 +114,7 @@ export default function PTZControls({ camId }) {
             variant="ghost"
             size="icon"
             className="h-8 w-8 text-white hover:bg-zinc-700 hover:text-white"
-            onPointerDown={e => handlePointerDown(e, 0, 1)}
+            onPointerDown={e => handlePointerDown(e, 0, -1)}
             onPointerUp={handlePointerUp}
             onPointerLeave={handlePointerUp}
           >
