@@ -1,4 +1,7 @@
 const peers = {};
+const retryTimers = {};
+const MAX_RETRIES = 20;
+const RETRY_DELAY_MS = 2000;
 
 export function isWebRTCSupported() {
   return !!window.RTCPeerConnection;
@@ -8,7 +11,10 @@ export function startWebRTCStream(camId, videoElement, { onLoading, onError } = 
   if (peers[camId]) stopWebRTCStream(camId);
   if (!videoElement) return;
 
+  if (!retryTimers[camId]) retryTimers[camId] = { count: 0 };
+
   if (onLoading) onLoading(true);
+  if (onError) onError(false);
 
   const host = window.location.hostname;
   const url = `http://${host}:8889/${camId}/whep`;
@@ -21,21 +27,22 @@ export function startWebRTCStream(camId, videoElement, { onLoading, onError } = 
   pc.addTransceiver('video', { direction: 'recvonly' });
   pc.addTransceiver('audio', { direction: 'recvonly' });
 
+  let streamActive = false;
+
   pc.ontrack = (event) => {
     if (event.track.kind === 'video' || !videoElement.srcObject) {
       videoElement.srcObject = event.streams[0];
+      streamActive = true;
+      retryTimers[camId].count = 0;
       videoElement.onplaying = () => { if (onLoading) onLoading(false); };
     }
   };
 
   pc.oniceconnectionstatechange = () => {
     if (pc.iceConnectionState === 'failed' || pc.iceConnectionState === 'disconnected') {
-      setTimeout(() => {
-        if (peers[camId]) {
-          stopWebRTCStream(camId);
-          startWebRTCStream(camId, videoElement, { onLoading, onError });
-        }
-      }, 3000);
+      if (streamActive) {
+        scheduleRetry(camId, videoElement, { onLoading, onError });
+      }
     }
   };
 
@@ -55,13 +62,28 @@ export function startWebRTCStream(camId, videoElement, { onLoading, onError } = 
     .then((sdp) => pc.setRemoteDescription({ type: 'answer', sdp }))
     .catch((err) => {
       console.error(`WebRTC error for ${camId}:`, err);
-      if (onError) onError(err);
-      if (onLoading) onLoading(false);
       pc.close();
       delete peers[camId];
+      scheduleRetry(camId, videoElement, { onLoading, onError });
     });
 
   peers[camId] = pc;
+}
+
+function scheduleRetry(camId, videoElement, callbacks) {
+  const state = retryTimers[camId];
+  if (!state) return;
+  if (state.count >= MAX_RETRIES) {
+    if (callbacks.onError) callbacks.onError(new Error('max retries'));
+    if (callbacks.onLoading) callbacks.onLoading(false);
+    return;
+  }
+  state.count++;
+  if (retryTimers[camId].timer) clearTimeout(retryTimers[camId].timer);
+  retryTimers[camId].timer = setTimeout(() => {
+    if (peers[camId]) return;
+    startWebRTCStream(camId, videoElement, callbacks);
+  }, RETRY_DELAY_MS);
 }
 
 export function stopWebRTCStream(camId) {
@@ -69,11 +91,19 @@ export function stopWebRTCStream(camId) {
     peers[camId].close();
     delete peers[camId];
   }
+  if (retryTimers[camId]) {
+    if (retryTimers[camId].timer) clearTimeout(retryTimers[camId].timer);
+    delete retryTimers[camId];
+  }
 }
 
 export function destroyAllWebRTC() {
   Object.keys(peers).forEach((id) => {
     peers[id].close();
     delete peers[id];
+  });
+  Object.keys(retryTimers).forEach((id) => {
+    if (retryTimers[id].timer) clearTimeout(retryTimers[id].timer);
+    delete retryTimers[id];
   });
 }
