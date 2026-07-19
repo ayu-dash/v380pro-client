@@ -1,8 +1,8 @@
 const peers = {};
 const streams = {};
 const retryTimers = {};
-const MAX_RETRIES = 20;
-const RETRY_DELAY_MS = 2000;
+const MAX_RETRIES = Infinity;
+const RETRY_DELAY_MS = 3000;
 
 export function isWebRTCSupported() {
   return !!window.RTCPeerConnection;
