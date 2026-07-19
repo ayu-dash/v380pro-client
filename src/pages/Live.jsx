@@ -25,7 +25,7 @@ export default function Live() {
     if (isWebRTCSupported()) {
       startWebRTCStream(cam.id, video, {
         onLoading: (loading) => setLiveLoadingStates(prev => ({ ...prev, [cam.id]: loading })),
-        onError: () => setLiveErrorStates(prev => ({ ...prev, [cam.id]: true }))
+        onError: (err) => setLiveErrorStates(prev => ({ ...prev, [cam.id]: !!err }))
       });
     } else {
       setLiveErrorStates(prev => ({ ...prev, [cam.id]: true }));
