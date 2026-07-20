@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import {
   RefreshCw, X, Menu
@@ -15,10 +15,10 @@ import { Sheet } from './components/ui/sheet';
 
 // Import Layout & Pages
 import Layout from './components/Layout';
-import Live from './pages/Live';
-import Playback from './pages/Playback';
-import Snapshots from './pages/Snapshots';
-import Settings from './pages/Settings';
+const Live = React.lazy(() => import('./pages/Live'));
+const Playback = React.lazy(() => import('./pages/Playback'));
+const Snapshots = React.lazy(() => import('./pages/Snapshots'));
+const Settings = React.lazy(() => import('./pages/Settings'));
 import { ZoomControlsOverlay } from './components/ZoomControlsOverlay';
 
 export default function App() {
@@ -675,6 +675,11 @@ export default function App() {
 
   return (
     <BrowserRouter>
+      <Suspense fallback={
+        <div className="flex h-screen items-center justify-center bg-zinc-950">
+          <RefreshCw className="h-6 w-6 animate-spin text-zinc-500" />
+        </div>
+      }>
       <Routes>
         <Route path="/" element={<Layout storageInfo={storageInfo} cameras={cameras} handleLogout={handleLogout} contextProps={contextProps} />}>
           <Route index element={<Live />} />
@@ -684,6 +689,7 @@ export default function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>
+      </Suspense>
 
       <Dialog open={settingsModalOpen} onOpenChange={setSettingsModalOpen}>
         <DialogContent onClose={() => setSettingsModalOpen(false)}>
