@@ -109,6 +109,9 @@ export default function Playback() {
         <div className="col-span-full mt-4">
           <h4 className="text-sm font-semibold mb-3">Detection Events</h4>
           <div className="space-y-2">
+            {playbackDetections.length === 0 && (
+              <p className="text-xs text-zinc-500 text-center py-2">Tidak ada deteksi untuk segmen ini.</p>
+            )}
             {playbackDetections.map((l, index) => {
               const mins = Math.floor(l.relSecs / 60).toString().padStart(2, '0');
               const secs = Math.floor(l.relSecs % 60).toString().padStart(2, '0');

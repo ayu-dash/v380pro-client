@@ -372,17 +372,26 @@ export default function App() {
     setPlaybackDetections([]);
     try {
       const res = await fetch(`/api/detections/${playbackCamId}`);
+      if (!res.ok) {
+        console.warn(`Detections fetch failed: ${res.status}`);
+        return;
+      }
       const logs = await res.json();
       const parts = recFile.name.replace('.mp4', '').split('_');
       const dateParts = parts[0].split('-');
-      const startStr = `${dateParts[0]}-${dateParts[1]}-${dateParts[2]}T${parts[1].replace(/-/g, ':')}`;
-      const segmentStart = new Date(startStr).getTime();
+      const timeParts = parts[1].split('-').map(Number);
+      const segmentStart = Date.UTC(
+        parseInt(dateParts[0]), parseInt(dateParts[1]) - 1, parseInt(dateParts[2]),
+        timeParts[0], timeParts[1], timeParts[2] || 0
+      );
       const parsedLogs = logs.map(l => ({
         ...l,
         relSecs: (new Date(l.time).getTime() - segmentStart) / 1000
       })).filter(l => l.relSecs >= 0 && l.relSecs <= 300);
       setPlaybackDetections(parsedLogs);
-    } catch (e) { }
+    } catch (e) {
+      console.error('Failed to load detections:', e);
+    }
   };
 
   const seekToEvent = (secs) => {
@@ -396,7 +405,7 @@ export default function App() {
   const handlePlaybackTimeUpdate = (e) => {
     const player = e.target;
     const currentSecs = player.currentTime;
-    const active = playbackDetections.find(l => Math.abs(l.relSecs - currentSecs) < 1.5);
+    const active = playbackDetections.find(l => Math.abs(l.relSecs - currentSecs) < 5);
     if (active) {
       setActivePlaybackDetections(active.detections);
     } else {
