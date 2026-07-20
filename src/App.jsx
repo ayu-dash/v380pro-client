@@ -116,12 +116,25 @@ export default function App() {
 
   const checkAuthStatus = async () => {
     try {
-      const res = await fetch('/api/check-auth');
-      const data = await res.json();
-      setAuthenticated(data.authenticated);
-      if (data.authenticated) {
-        fetchCameras();
-        fetchStorageInfo();
+      const [authRes, camsRes, storageRes] = await Promise.all([
+        fetch('/api/check-auth'),
+        fetch('/api/cameras'),
+        fetch('/api/system/storage')
+      ]);
+      const authData = await authRes.json();
+      setAuthenticated(authData.authenticated);
+      if (authData.authenticated) {
+        if (camsRes.ok) {
+          const cams = await camsRes.json();
+          setCameras(cams);
+          if (cams.length > 0) {
+            if (!playbackCamId) setPlaybackCamId(cams[0].id);
+            if (!snapshotCamId) setSnapshotCamId(cams[0].id);
+          }
+        }
+        if (storageRes.ok) {
+          setStorageInfo(await storageRes.json());
+        }
       }
     } catch (err) {
       setAuthenticated(false);
@@ -137,7 +150,7 @@ export default function App() {
       const interval = setInterval(() => {
         fetchCameras();
         fetchStorageInfo();
-      }, 300000);
+      }, 60000);
       return () => clearInterval(interval);
     }
   }, [authenticated]);
