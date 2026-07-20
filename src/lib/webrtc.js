@@ -30,7 +30,7 @@ export function startWebRTCStream(camId, videoElement, { onLoading, onError } = 
   const url = `http://${host}:8889/${camId}_h264/whep`;
 
   const pc = new RTCPeerConnection({
-    iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
+    iceServers: [],
     sdpSemantics: 'unified-plan',
   });
 
