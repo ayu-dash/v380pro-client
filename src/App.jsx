@@ -380,10 +380,10 @@ export default function App() {
       const parts = recFile.name.replace('.mp4', '').split('_');
       const dateParts = parts[0].split('-');
       const timeParts = parts[1].split('-').map(Number);
-      const segmentStart = Date.UTC(
+      const segmentStart = new Date(
         parseInt(dateParts[0]), parseInt(dateParts[1]) - 1, parseInt(dateParts[2]),
         timeParts[0], timeParts[1], timeParts[2] || 0
-      );
+      ).getTime();
       const parsedLogs = logs.map(l => ({
         ...l,
         relSecs: (new Date(l.time).getTime() - segmentStart) / 1000
